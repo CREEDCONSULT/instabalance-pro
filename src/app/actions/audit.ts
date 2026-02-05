@@ -1,22 +1,17 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { auth } from "@clerk/nextjs/server";
 
 export async function logEvent(action: string, payload?: any) {
     try {
+        const { auth } = await import("@clerk/nextjs/server");
         const { userId } = await auth();
         if (!userId) return { success: false, error: "Unauthorized" };
-
-        // Find the internal user ID mapping if needed, or just use clerkId if schema allows
-        // For this POC, we'll use the clerkId directly if we haven't run migrations to create the User model.
-        // However, the schema expects a relation. Let's assume the User model exists and matches clerkId.
 
         await db.auditLog.create({
             data: {
                 action,
-                payload,
-                // userId: userId // This assumes the User.id matches clerkId or we've mapped it
+                payload: payload ? (payload as any) : undefined,
             }
         });
 
@@ -29,6 +24,7 @@ export async function logEvent(action: string, payload?: any) {
 
 export async function saveDecision(username: string, decision: any, tier?: string, score?: number, reasons?: string[]) {
     try {
+        const { auth } = await import("@clerk/nextjs/server");
         const { userId } = await auth();
         if (!userId) return { success: false, error: "Unauthorized" };
 

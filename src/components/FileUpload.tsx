@@ -1,26 +1,33 @@
 "use client";
 
-import { useTransition } from "react";
+import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { uploadAndProcess } from "@/app/actions/process";
 
 export default function FileUpload() {
     const [isPending, startTransition] = useTransition();
+    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
     const handleFormAction = async (formData: FormData) => {
+        setError(null);
         startTransition(async () => {
             const result = await uploadAndProcess(formData);
             if (result.success) {
-                // Store result in local storage or state management if needed
-                // For now, we'll redirect to review with a query param or similar
                 router.push("/dashboard/review");
+            } else {
+                setError(result.error || "Upload failed");
             }
         });
     };
 
     return (
         <form action={handleFormAction} className="space-y-4">
+            {error && (
+                <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-lg text-sm mb-4">
+                    {error}
+                </div>
+            )}
             <div className="grid grid-cols-1 gap-4">
                 <label className="block">
                     <span className="sr-only">Choose followers.json</span>

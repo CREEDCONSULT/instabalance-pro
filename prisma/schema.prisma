@@ -25,6 +25,7 @@ model ImportSession {
   status             ImportStatus         @default(PENDING)
   followerCount      Int                  @default(0)
   followingCount     Int                  @default(0)
+  rawData            Json?                // Cached analysis result for quick retrieval
   snapshots          RelationshipSnapshot[]
   createdAt          DateTime             @default(now())
 }

@@ -5,12 +5,16 @@ import { db } from "@/lib/db";
 export async function logEvent(action: string, payload?: any) {
     try {
         const { auth } = await import("@clerk/nextjs/server");
-        const { userId } = await auth();
-        if (!userId) return { success: false, error: "Unauthorized" };
+        const { userId: clerkId } = await auth();
+        if (!clerkId) return { success: false, error: "Unauthorized" };
+
+        // Find the internal user
+        const user = await db.user.findUnique({ where: { clerkId } });
 
         await db.auditLog.create({
             data: {
                 action,
+                userId: user?.id,
                 payload: payload ? (payload as any) : undefined,
             }
         });
@@ -25,13 +29,20 @@ export async function logEvent(action: string, payload?: any) {
 export async function saveDecision(username: string, decision: any, tier?: string, score?: number, reasons?: string[]) {
     try {
         const { auth } = await import("@clerk/nextjs/server");
-        const { userId } = await auth();
-        if (!userId) return { success: false, error: "Unauthorized" };
+        const { userId: clerkId } = await auth();
+        if (!clerkId) return { success: false, error: "Unauthorized" };
+
+        // Find the internal user ID
+        const user = await db.user.findUnique({ where: { clerkId } });
+        if (!user) {
+            console.error("User not found for clerkId:", clerkId);
+            return { success: false, error: "User session not found. Please try uploading your data again." };
+        }
 
         await db.reviewDecision.upsert({
             where: {
                 userId_username: {
-                    userId: userId,
+                    userId: user.id,
                     username: username
                 }
             },
@@ -42,7 +53,7 @@ export async function saveDecision(username: string, decision: any, tier?: strin
                 reasons
             },
             create: {
-                userId,
+                userId: user.id,
                 username,
                 decision,
                 tier,

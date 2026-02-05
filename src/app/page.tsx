@@ -1,9 +1,10 @@
-import { SignInButton, SignUpButton, auth } from "@clerk/nextjs";
+import { SignInButton, SignUpButton } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
-export default function Home() {
-  const { userId } = auth();
+export default async function Home() {
+  const { userId } = await auth();
 
   if (userId) {
     redirect("/dashboard");

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo, useEffect } from "react";
 import { ChevronLeft, Info, Trophy, Loader2 } from "lucide-react";
 import Link from "next/link";

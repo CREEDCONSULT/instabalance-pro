@@ -1,11 +1,11 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 
 export async function logEvent(action: string, payload?: any) {
     try {
-        const { userId } = auth();
+        const { userId } = await auth();
         if (!userId) return { success: false, error: "Unauthorized" };
 
         // Find the internal user ID mapping if needed, or just use clerkId if schema allows
@@ -29,7 +29,7 @@ export async function logEvent(action: string, payload?: any) {
 
 export async function saveDecision(username: string, decision: any, tier?: string, score?: number, reasons?: string[]) {
     try {
-        const { userId } = auth();
+        const { userId } = await auth();
         if (!userId) return { success: false, error: "Unauthorized" };
 
         await db.reviewDecision.upsert({

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.37.3",
+    "@prisma/client": "^6.2.1",
     "@types/busboy": "^1.5.4",
     "@types/fs-extra": "^11.0.4",
     "busboy": "^1.6.0",
@@ -25,7 +26,6 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@prisma/client": "^6.2.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

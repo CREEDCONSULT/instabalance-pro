@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String          @id @default(cuid())
+  clerkId       String          @unique
+  email         String?
+  imports       ImportSession[]
+  decisions     ReviewDecision[]
+  auditLogs     AuditLog[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model ImportSession {
+  id                 String               @id @default(cuid())
+  userId             String
+  user               User                 @relation(fields: [userId], references: [id])
+  status             ImportStatus         @default(PENDING)
+  followerCount      Int                  @default(0)
+  followingCount     Int                  @default(0)
+  snapshots          RelationshipSnapshot[]
+  createdAt          DateTime             @default(now())
+}
+
+model RelationshipSnapshot {
+  id               String        @id @default(cuid())
+  importSessionId  String
+  importSession    ImportSession @relation(fields: [importSessionId], references: [id])
+  username         String
+  type             AccountType   // FOLLOWER or FOLLOWING
+  normalizedAt     DateTime      @default(now())
+
+  @@index([username])
+}
+
+model ReviewDecision {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  username    String
+  decision    DecisionType   // KEEP, PROTECT, UNFOLLOW_PENDING, UNFOLLOWED
+  tier        String?        // Dormant, Low-signal, etc.
+  score       Float?
+  reasons     String[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@unique([userId, username])
+}
+
+model AuditLog {
+  id          String    @id @default(cuid())
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id])
+  action      String    // e.g., IMPORT_CREATED, DECISION_MADE
+  payload     Json?
+  createdAt   DateTime  @default(now())
+}
+
+enum ImportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum AccountType {
+  FOLLOWER
+  FOLLOWING
+}
+
+enum DecisionType {
+  KEEP
+  PROTECT
+  APPROVE_UNFOLLOW
+  UNFOLLOWED
+  SKIPPED
+}
